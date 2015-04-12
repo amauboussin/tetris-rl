@@ -366,6 +366,19 @@ class TetrisGameEngine(object):
         else:
             return False
 
+    def set_x(self, new_x):
+        x, y = self.box_coords
+        if self.__merge_box_and_field(self.box, self.playing_field, new_x, y, simulate=True):
+            self.box_coords = (new_x, y)
+            return True
+        else:
+            return False
+
+    def set_rotation(self, new_r):
+        if not self.tet_state[0] == "O":
+            self.tet_state[1] = new_r
+
+
     def hard_drop(self):
         """
         Hard drops current tetrimino. Returns nothing.
@@ -422,6 +435,11 @@ class TetrisGameEngine(object):
             self.score += score
             return score
 
+    def display(self):
+        print self.score
+        print '\n'.join([''.join(['[#]' if cell else '[_]' for cell in row]) 
+            for row in self.get_field_state()])
+
     def __merge_box_and_field(self, box, field, x, y, simulate=False):
         """
         simulate=False -> returns field with box pasted in.
@@ -461,12 +479,13 @@ from time import sleep
 def display():
    "trivial function to see what's going on"
    field = GAME.get_field_state()
-   print GAME.score
-   print GAME.line_clears
+   print field
+   # print GAME.score
+   # print GAME.line_clears
    sleep(0.01)
    system('clear')
-   print '\n'.join([''.join(['[#]' if cell else '[_]' for cell in row])
-                    for row in field])
+   #print '\n'.join([''.join(['[#]' if cell else '[_]' for cell in row])
+    #        for row in field])
 
 def randmove():
    "performs a random rotation or movement"
@@ -475,14 +494,20 @@ def randmove():
    else:
        GAME.rotate(choice(['L', 'R']))
 
-PIECE = TetrisRandomGenerator()
-GAME = TetrisGameEngine(width = 6)
 
-for tet in range(100):
-   GAME.spawn(PIECE.next())
-   display()
-   for movement in range(5):
-       randmove()
+def test():
+    PIECE = TetrisRandomGenerator()
+    GAME = TetrisGameEngine(width = 6)
+
+    for tet in range(100):
+       GAME.spawn(PIECE.next())
        display()
-   GAME.hard_drop()
-   display()
+       for movement in range(2):
+           randmove()
+           display()
+       GAME.hard_drop()
+       display()
+
+
+if __name__ == '__main__':
+    test()
