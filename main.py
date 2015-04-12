@@ -10,6 +10,6 @@ state_histories, action_histories, reward_histories = task.run_trials(10000)
 
 scores = []
 for game in reward_histories:
-	scores.append(np.mean(game))
+	scores.append(sum(game))
 
 print np.mean(scores)
