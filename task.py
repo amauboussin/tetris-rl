@@ -8,6 +8,9 @@ class TetrisTask:
 		self.game =TetrisGameEngine(width = width, height = height)
 		self.piece_generator = piece_generator
 
+		self.width = width
+		self.height = height
+
 
 
 
@@ -17,10 +20,14 @@ class TetrisTask:
 		action_histories = [ [] for t in xrange(trials)]
 		reward_histories = [ [] for t in xrange(trials)]
 
-		field = self.game.get_field_state()
+		
 		for trial in range(trials):
+			#reset board
+			self.game.__init__(width = self.width, height = self.height)
+			field = self.game.get_field_state()
 
 			reward = 0
+			last_field = None #snapshot of the board before game over
 			while (field):
 
 				self.game.spawn(self.piece_generator.next())
@@ -41,8 +48,11 @@ class TetrisTask:
 				self.game.hard_drop()
 				reward = self.game.clear_lines()
 
+				last_field = field if field else last_field
+
 				
-			self.game.display()
+			#self.game.display(last_field)
+		return state_histories, action_histories, reward_histories
 
 
 

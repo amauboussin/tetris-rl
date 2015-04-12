@@ -422,6 +422,7 @@ class TetrisGameEngine(object):
         """
         Ammends playing_field, line_clears, score and returns score (not total).
         """
+
         clears = 0
         field = self.playing_field
         for y in xrange(self.field_height):
@@ -435,10 +436,14 @@ class TetrisGameEngine(object):
             self.score += score
             return score
 
-    def display(self):
+        return 0
+
+    def display(self, field = None):
+        if field is None:
+            field = self.get_field_state()
         print self.score
         print '\n'.join([''.join(['[#]' if cell else '[_]' for cell in row]) 
-            for row in self.get_field_state()])
+            for row in field])
 
     def __merge_box_and_field(self, box, field, x, y, simulate=False):
         """

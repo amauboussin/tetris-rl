@@ -13,7 +13,5 @@ class Random:
 
    def interact(self, state, reward):
 
-
         self.last_state = state
-
         return [random.randrange(self.board_width - self.bounding_box_width), random.randrange(4)]
