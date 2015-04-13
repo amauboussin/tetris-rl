@@ -2,7 +2,7 @@ from t_interface import *
 
 class TetrisTask:
 
-	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator() ):
+	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), get_features=lambda x,y:x):
 
 		self.agent = agent
 		self.game =TetrisGameEngine(width = width, height = height)
@@ -11,7 +11,7 @@ class TetrisTask:
 		self.width = width
 		self.height = height
 
-		self.get_features = lambda x,y : x
+		self.get_features = get_features
 
 
 
