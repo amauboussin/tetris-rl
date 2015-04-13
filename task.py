@@ -2,16 +2,17 @@ from t_interface import *
 
 class TetrisTask:
 
-	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), get_features=lambda x,y:x):
+	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), feature_function = lambda x,y : x, display_death = False):
 
 		self.agent = agent
 		self.game =TetrisGameEngine(width = width, height = height)
 		self.piece_generator = piece_generator
+		self.display_death = display_death
 
 		self.width = width
 		self.height = height
 
-		self.get_features = get_features
+		self.get_features = feature_function
 
 
 
@@ -39,7 +40,7 @@ class TetrisTask:
 
 				state = self.get_features(field, tet)
 
-				action = self.agent.interact(state, reward)
+				action = self.agent.interact(state, reward, field, tet)
 				new_x, new_r = action
 
 				state_histories[trial].append(state)
@@ -57,7 +58,7 @@ class TetrisTask:
 				last_field = field if field else last_field
 
 				
-			#self.game.display(last_field)
+			if self.display_death: self.game.display(last_field)
 		return state_histories, action_histories, reward_histories
 
 

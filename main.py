@@ -5,9 +5,9 @@ import numpy as np
 
 board_width = 8
 agent = Random(board_width)
-task = TetrisTask(agent, width = board_width, height = 22, get_features = get_features)
+task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
 
-state_histories, action_histories, reward_histories = task.run_trials(5000)
+state_histories, action_histories, reward_histories = task.run_trials(10000)
 
 # print state_histories
 # print action_histories
