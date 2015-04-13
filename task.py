@@ -11,6 +11,8 @@ class TetrisTask:
 		self.width = width
 		self.height = height
 
+		self.get_features = lambda x,y : x
+
 
 
 
@@ -33,10 +35,14 @@ class TetrisTask:
 				self.game.spawn(self.piece_generator.next())
 
 				field = self.game.get_field_state()
-				action = self.agent.interact(field, reward)
+				tet = self.game.tet_state[0]
+
+				state = self.get_features(field, tet)
+
+				action = self.agent.interact(state, reward)
 				new_x, new_r = action
 
-				state_histories[trial].append(field)
+				state_histories[trial].append(state)
 				action_histories[trial].append(action)
 				reward_histories[trial].append(reward)
 
