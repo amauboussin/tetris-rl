@@ -36,6 +36,8 @@ class TetrisTask:
 				self.game.spawn(self.piece_generator.next())
 
 				field = self.game.get_field_state()
+				if not field: break #game over
+
 				tet = self.game.tet_state[0]
 
 				state = self.get_features(field, tet)
