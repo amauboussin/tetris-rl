@@ -54,7 +54,7 @@ class Random:
 
 class FittedQAgent:
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
-    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 500, regressor = ExtraTreesRegressor, regressor_params = {}):
+    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 2000, regressor = ExtraTreesRegressor, regressor_params = {}):
         self.N = N
         self.gamma = gamma
         self.n_samples = n_samples

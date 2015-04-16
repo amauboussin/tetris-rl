@@ -17,7 +17,7 @@ def random_test(board_width = 8):
 def fittedq_test(board_width = 8):
 	agent = FittedQAgent()
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
-	state_histories, action_histories, reward_histories = task.run_trials(100)
+	state_histories, action_histories, reward_histories = task.run_trials(1000)
 	mean_score(reward_histories)
 
 def mean_score(reward_histories):
