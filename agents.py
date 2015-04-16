@@ -54,12 +54,13 @@ class Random:
 
 class FittedQAgent:
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
-    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 500, regressor = ExtraTreesRegressor, regressor_params = {}):
+    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
         self.N = N
         self.gamma = gamma
         self.n_samples = n_samples
         self.regressor = regressor
         self.regressor_params = regressor_params
+        self.reg = self.regressor(**self.regressor_params)
         r = Random(board_width)
         self.random = r
         self.current_policy = r.interact
@@ -92,14 +93,14 @@ class FittedQAgent:
 
         new_data = ([new_s for (s, a, r, new_s) in self.tuples])
 
+        reg = self.reg
         for i in range(self.N):
-            reg = self.regressor(**self.regressor_params)
             reg.fit(data, targets)
 
             for j in range(len(data)):
                 state = new_data[j]
-                next_sa = [state + a for a in  valid_actions[state_to_tet(state)] ]
-                targets[j] = rewards[j] + self.gamma * max([reg.predict(sa) for sa in next_sa])
+                next_sa = np.array([state + a for a in  valid_actions[state_to_tet(state)]])
+                targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
             if not state is None:
@@ -108,6 +109,8 @@ class FittedQAgent:
                 return action
 
         self.current_policy = learned_policy
+        #random.shuffle(self.tuples)
+        #self.tuples = self.tuples[:(self.n_samples*4/5)]
         print 'done'
 
 class PolicyAgent:
@@ -115,6 +118,6 @@ class PolicyAgent:
 
         self.policy = policy
 
-    def interact(state, reward):
+    def interact(self, state, reward, field, tet):
         #determine using policy
-        return 0
+        return self.policy(state, reward, field, tet)
