@@ -1,9 +1,7 @@
 from task import TetrisTask
-from fittedq import fittedQ
 from agents import *
 from features import get_features
 import numpy as np
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
 
 
 def random_test(board_width = 8):
