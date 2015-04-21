@@ -45,7 +45,7 @@ def mirrorfittedq_test(board_width = 8):
 def mean_score(reward_histories):
 	scores = []
 	for game in reward_histories:
-		scores.append(sum(game))
+		if len(game): scores.append(sum(game))
 	print max(scores)
 	print np.mean(scores)
 
