@@ -1,4 +1,12 @@
 from t_interface import *
+import numpy as np
+
+def mean_score(reward_histories):
+	scores = []
+	for game in reward_histories:
+		if len(game) > 0:
+			scores.append(sum(game))
+	print np.mean(scores), max(scores)
 
 class TetrisTask:
 
@@ -13,9 +21,6 @@ class TetrisTask:
 		self.height = height
 
 		self.get_features = feature_function
-
-
-
 
 	def run_trials(self, trials = 100):
 
@@ -48,6 +53,8 @@ class TetrisTask:
 				state_histories[trial].append(state)
 				action_histories[trial].append(action)
 				reward_histories[trial].append(reward)
+				if self.agent.print_reward:
+					mean_score(reward_histories)
 
 				self.game.set_rotation(new_r)
 				valid_move = self.game.set_x(new_x)

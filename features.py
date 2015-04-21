@@ -16,7 +16,21 @@ def get_top_four(board):
     for j in range(width):
       if board[top+i+1][j] != '':
         heights[j] = rows - i
-  return heights    
+  return heights
+
+def get_diff_top_four(board):
+  heights = get_top_four(board)
+  return [abs(heights[i+1] - heights[i]) for i in range(len(heights)-1)]
+
+def get_heights(board):
+  height = len(board)
+  width = len(board[0])
+  heights = [0] * width
+  for i in reversed(range(height)):
+    for j in range(width):
+      if board[i][j] != '':
+        heights[j] = height - i
+  return heights
   
 # return the number of holes in the board
 def get_num_holes(board):
@@ -38,6 +52,18 @@ def get_tet(tet):
   else:
     return [int(tet == piece) for piece in pieces]
 
+def get_tet_mirror(tet):
+  pieces = ['I', 'O', 'T', 'J', 'S']
+  if tet == None:
+    return
+  elif tet =='L':
+    return [0,0,0,1,0]
+  elif tet == 'Z':
+    return [0,0,0,0,1]
+  else:
+    return [int(tet == piece) for piece in pieces]
+
+# currently disabling tet to see if separate regressors for each will be better
 def get_features(board, tet):
   if type(board) is bool:
     return

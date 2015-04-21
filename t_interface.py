@@ -260,6 +260,9 @@ class TetrisGameEngine(object):
                         (( '', '','Z'),
                          ( '','Z','Z'),
                          ( '','Z', '')),
+                        #(( '', 'Z', ''),
+                         #( 'Z','Z', ''),
+                         #( 'Z', '', '')),
 
                         (( '', '', ''),
                          ('Z','Z', ''),
@@ -268,6 +271,10 @@ class TetrisGameEngine(object):
                         (( '','Z', ''),
                          ('Z','Z', ''),
                          ('Z', '', '')))}
+                        #(('','','Z'),
+                         #('','Z','Z'),
+                         #('','Z','')))}
+
 
     # http://tetrisconcept.net/wiki/SRS
     # wall_kick_data holds (x, y) kick values found on page from link above.
