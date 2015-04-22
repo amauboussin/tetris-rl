@@ -44,6 +44,7 @@ class Random:
 
         self.last_state = None
         self.board_width  = board_width
+        self.print_reward = False
 
     def interact(self, state, reward, field, tet):
 
