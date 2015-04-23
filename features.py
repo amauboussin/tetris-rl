@@ -24,9 +24,10 @@ def get_diff_top_four(board):
 
 def get_heights(board):
   height = len(board)
+  top = get_top(board)
   width = len(board[0])
   heights = [0] * width
-  for i in reversed(range(height)):
+  for i in reversed(range(top+1, height)):
     for j in range(width):
       if board[i][j] != '':
         heights[j] = height - i
@@ -63,9 +64,15 @@ def get_tet_mirror(tet):
   else:
     return [int(tet == piece) for piece in pieces]
 
+# difference from max height to each column
+def get_height_diffs(board):
+  heights = get_heights(board)
+  m = max(heights)
+  return [m - h for h in heights]
+
 # currently disabling tet to see if separate regressors for each will be better
 def get_features(board, tet):
   if type(board) is bool:
     return
   else:
-    return get_top_four(board) + [get_num_holes(board)] + get_tet(tet)
+    return get_height_diffs(board) + [get_num_holes(board)] + get_tet(tet)

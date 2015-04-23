@@ -59,15 +59,95 @@ board_width = 8
 rightmost = board_width - bounding_box_width
 mirrored_x = {}
 mirrored_pieces = {'L':'J','Z':'S'}
+binaries = {}
 for i in range(-1, rightmost+2):
     mirrored_x[i] = rightmost - i
+
+def state_to_tet_mir(state):
+    val_pieces = ['I', 'O', 'T', 'J', 'S']
+    return val_pieces[list(state[-5:]).index(1)]
+
 def m_a(action):
     x = action[0]
     r = action[1]
     return [mirrored_x[x], mirrored_rots[r]]
 
+
 def m_s(state):
-    return state[-2::-1] + state[-1:]
+    return state[-7::-1] + state[-6:]
+
+class MirrorFittedQAgent:
+    # number of iterations to regress, discount, board_width, num_samples, ?regressor?
+    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
+        self.N = N
+        self.gamma = gamma
+        self.n_samples = n_samples
+        self.regressor = regressor
+        self.regressor_params = regressor_params
+        self.reg = self.regressor(**self.regressor_params)
+        r = Random(board_width)
+        self.random = r
+        self.current_policy = r.interact
+        self.print_reward = False
+
+        self.pieces = ['I', 'O', 'T', 'J', 'S']
+        self.last_state = None
+        self.last_action = None
+        self.last_tet = None
+        self.tuples = []
+        self.n_tuples = 0
+
+    def interact(self, state, reward, field, tet):
+        self.print_reward = False
+        if self.last_state != None and state != None:
+            if self.last_tet in self.pieces:
+                self.tuples.append((self.last_state, self.last_action, reward, state))
+            else:
+                self.tuples.append((m_s(self.last_state), self.last_action, reward, m_s(state)))
+            self.n_tuples += 1
+            if self.n_tuples == self.n_samples:
+                self.print_reward = True
+                self.regress()
+                self.n_samples *= 2
+        self.last_state = state
+        self.last_tet = tet
+        if tet in self.pieces:
+            self.last_action = self.current_policy(state, reward, field, tet)
+            return self.last_action
+        else:
+            self.last_action = self.current_policy(m_s(state), reward, field, mirrored_pieces[tet])
+            return m_a(self.last_action)
+
+
+    def regress(self):
+        print 'regressing on %s tuples' % len(self.tuples)
+
+
+        data = np.array([s+a for (s, a, r, new_s) in self.tuples])
+        rewards = np.array([r for (s, a, r, new_s) in self.tuples])
+        targets = np.array([r for (s, a, r, new_s) in self.tuples])
+
+        new_data = ([new_s for (s, a, r, new_s) in self.tuples])
+
+        reg = self.reg
+        for i in range(self.N):
+            reg.fit(data, targets)
+
+            for j in range(len(data)):
+                state = new_data[j]
+                next_sa = np.array([state + a for a in  valid_actions[state_to_tet_mir(state)]])
+                targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
+
+        def learned_policy(state, reward, field, tet):
+            if tet not in self.pieces:
+                print "Error"
+            if not state is None:
+                next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
+                action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+                return action
+
+        self.current_policy = learned_policy
+        print 'done'
 
 class FittedQAgent:
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
@@ -96,7 +176,7 @@ class FittedQAgent:
             if self.n_tuples == self.n_samples:
                 self.print_reward = True
                 self.regress()
-                self.n_tuples = 0
+                self.n_samples *= 2
         self.last_state = state
         self.last_action = self.current_policy(state, reward, field, tet)
         return self.last_action
