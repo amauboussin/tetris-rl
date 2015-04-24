@@ -1,6 +1,5 @@
 import random
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
-
 import numpy as np
 
 #action is two numbers, an x coordinate followed by a rotation 

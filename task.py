@@ -13,9 +13,12 @@ class TetrisTask:
 	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), feature_function = lambda x,y : x, display_death = False):
 
 		self.agent = agent
+
+
 		self.game =TetrisGameEngine(width = width, height = height)
 		self.piece_generator = piece_generator
 		self.display_death = display_death
+		self.lines_cleared = 0
 
 		self.death_penalty = -10000
 
@@ -23,6 +26,12 @@ class TetrisTask:
 		self.height = height
 
 		self.get_features = feature_function
+
+		#check if the agent has a custom reward function that maps state to reward
+		if hasattr(self.agent, 'reward_function'):
+			self.reward_function = self.agent.reward_function
+		else:
+			self.reward_function = lambda s : self.lines_cleared
 
 	def run_trials(self, trials = 100):
 
@@ -56,7 +65,7 @@ class TetrisTask:
 
 				self.game.set_rotation(new_r)
 				valid_move = self.game.set_x(new_x)
-					
+				
 
 				state_histories[trial].append(state)
 				action_histories[trial].append(action)
@@ -70,9 +79,10 @@ class TetrisTask:
 				
 
 				self.game.hard_drop()
+				state = self.get_features(field, tet)
+				self.lines_cleared = self.game.clear_lines()
+				reward = self.reward_function(state)
 
-
-				reward = self.game.clear_lines()
 
 				last_field = field if field else last_field
 
