@@ -153,9 +153,10 @@ class MirrorFittedQAgent:
         self.current_policy = learned_policy
         print 'done'
 
-class FittedQAgent:
+class FittedQAgent(object):
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
     def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
+        self.board_width = board_width
         self.N = N
         self.gamma = gamma
         self.n_samples = n_samples

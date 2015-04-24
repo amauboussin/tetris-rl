@@ -20,7 +20,6 @@ class TetrisTask:
 		self.display_death = display_death
 		self.lines_cleared = 0
 
-		self.death_penalty = -10000
 
 		self.width = width
 		self.height = height
@@ -32,6 +31,12 @@ class TetrisTask:
 			self.reward_function = self.agent.reward_function
 		else:
 			self.reward_function = lambda s : self.lines_cleared
+
+		if hasattr(self.agent, 'get_death_penalty'):
+			self.death_penalty = self.agent.get_death_penalty()
+		else:
+			self.death_penalty = -10000
+
 
 	def run_trials(self, trials = 100):
 
