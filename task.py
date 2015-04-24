@@ -17,6 +17,8 @@ class TetrisTask:
 		self.piece_generator = piece_generator
 		self.display_death = display_death
 
+		self.death_penalty = -10000
+
 		self.width = width
 		self.height = height
 
@@ -41,7 +43,9 @@ class TetrisTask:
 				self.game.spawn(self.piece_generator.next())
 
 				field = self.game.get_field_state()
-				if not field: break #game over
+				if not field: 
+					reward_histories[trial][-1] = self.death_penalty
+					break #game over, last thing led to death
 
 				tet = self.game.tet_state[0]
 
@@ -50,18 +54,24 @@ class TetrisTask:
 				action = self.agent.interact(state, reward, field, tet)
 				new_x, new_r = action
 
+				self.game.set_rotation(new_r)
+				valid_move = self.game.set_x(new_x)
+					
+
 				state_histories[trial].append(state)
 				action_histories[trial].append(action)
 				reward_histories[trial].append(reward)
 				if self.agent.print_reward:
 					mean_score(reward_histories)
 
-				self.game.set_rotation(new_r)
-				valid_move = self.game.set_x(new_x)
+				if not valid_move: 
+					reward_histories[trial][-1] = self.death_penalty
+					break #game over, last thing led to death
 				
-				if not valid_move: break #game over
 
 				self.game.hard_drop()
+
+
 				reward = self.game.clear_lines()
 
 				last_field = field if field else last_field

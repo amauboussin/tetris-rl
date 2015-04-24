@@ -31,11 +31,15 @@ def get_valid_actions(tet):
         + [[c,1] for c in range(-1, leftmost)]
         + [[c,3] for c in range(0, leftmost+1)]
 
-valid_actions = {}
-for p in pieces:
-    valid_actions[p] = get_valid_actions(p)
 
 
+def make_valid_actions(pieces):
+    valid_actions = {}
+    for p in pieces:
+        valid_actions[p] = get_valid_actions(p)
+    return valid_actions
+
+valid_actions = make_valid_actions(pieces)
 
 class Random:
     #TODO implement valid_actions that returns the set of valid actions

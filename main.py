@@ -56,7 +56,8 @@ def mean_score(reward_histories):
 	print max(scores)
 	print np.mean(scores)
 
+fittedq_test()
 # mirrorfittedq_test()
 # multiregfittedq_test()
-random_test()
+# random_test()
 # random_test()
