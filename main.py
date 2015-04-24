@@ -21,9 +21,9 @@ def random_test(board_width = 8):
 	plt.show()
 
 def test_multilevel(board_width = 8):
-	agent = LikesLeft()
+	agent = LikesRight()
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
-	state_histories, action_histories, reward_histories = task.run_trials(1000)
+	state_histories, action_histories, reward_histories = task.run_trials(5000)
 	new_agent = PolicyAgent(agent.current_policy)
 	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features, display_death = True)
 	state_histories, action_histories, reward_histories = new_task.run_trials(100)
