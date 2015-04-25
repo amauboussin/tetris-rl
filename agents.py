@@ -42,17 +42,27 @@ valid_actions = make_valid_actions(pieces)
 
 class Random:
     #TODO implement valid_actions that returns the set of valid actions
-    def  __init__(self, board_width):
+    def  __init__(self, board_width, action_function = None):
         #parameters go here
 
         self.last_state = None
         self.board_width  = board_width
         self.print_reward = False
 
+        self.action_function = action_function
+
+                   
+
+    def get_actions(self, state):
+        if self.action_function is None: 
+            return valid_actions[state_to_tet(state)]
+        else:
+            return self.action_function(state)
+
     def interact(self, state, reward, field, tet):
 
         self.last_state = state
-        valid = valid_actions[tet]
+        valid = self.get_actions(state)
         action = random.choice(valid)
         return action
 
@@ -155,7 +165,7 @@ class MirrorFittedQAgent:
 
 class FittedQAgent(object):
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
-    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
+    def __init__(self, N = 30, action_function = None, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
         self.board_width = board_width
         self.N = N
         self.gamma = gamma
@@ -163,7 +173,7 @@ class FittedQAgent(object):
         self.regressor = regressor
         self.regressor_params = regressor_params
         self.reg = self.regressor(**self.regressor_params)
-        r = Random(board_width)
+        r = Random(board_width, action_function = action_function)
         self.random = r
         self.current_policy = r.interact
         self.print_reward = False
@@ -176,6 +186,7 @@ class FittedQAgent(object):
     def interact(self, state, reward, field, tet):
         self.print_reward = False
         if self.last_state != None and state != None:
+            if not isinstance(self.last_action, list): self.last_action = [self.last_action]
             self.tuples.append((self.last_state, self.last_action, reward, state))
             self.n_tuples += 1
             if self.n_tuples == self.n_samples:
@@ -186,6 +197,8 @@ class FittedQAgent(object):
         self.last_action = self.current_policy(state, reward, field, tet)
         return self.last_action
 
+    def get_actions(self, state):
+        return valid_actions[state_to_tet(state)]
 
     def regress(self):
         print 'regressing on %s tuples' % len(self.tuples)
@@ -203,12 +216,12 @@ class FittedQAgent(object):
 
             for j in range(len(data)):
                 state = new_data[j]
-                next_sa = np.array([state + a for a in  valid_actions[state_to_tet(state)]])
+                next_sa = np.array([state + a for a in self.get_actions(state)])
                 targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
             if not state is None:
-                next_sa = [state+a for a in valid_actions[state_to_tet(state)] ]
+                next_sa = [state+a for a in self.get_actions(state) ]
                 action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
                 return action
 
