@@ -156,8 +156,11 @@ class MirrorFittedQAgent:
             if tet not in self.pieces:
                 print "Error"
             if not state is None:
-                next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
-                action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+
+                #next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
+                next_sa = [(state, a) for a in valid_actions[state_to_tet_mir(state)] ]
+                #action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+                action = next_sa[np.argmax([reg.predict(sa[0]+sa[1]) for sa in next_sa])][1]
                 return action
 
         self.current_policy = learned_policy

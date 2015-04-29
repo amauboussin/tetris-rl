@@ -20,6 +20,7 @@ class ParentAgent(FittedQAgent):
     def interact(self, state, reward, field, tet):
         self.print_reward = False
         if self.last_state != None and state != None:
+            if not isinstance(self.last_action, list): self.last_action = [self.last_action]
             self.tuples.append((self.last_state, self.last_action, reward, state))
             self.n_tuples += 1
             if self.n_tuples == self.n_samples:
