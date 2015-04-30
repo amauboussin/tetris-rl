@@ -30,28 +30,34 @@ def test_multilevel(board_width = 8):
 	mean_score(reward_histories)
 
 def train_policy(agent_class, trials = 1000, board_width = 8):
-	agent = agent_class()
+	trials = 1000
+	samples = 10000
+
+	agent = agent_class(n_samples = samples)
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
 	state_histories, action_histories, reward_histories = task.run_trials(trials)
 	return agent.current_policy
 
 def test_parent(board_width = 8):
+	trials = 1000
+	samples = 10000
 
 
 	#make get_actions always return a list.
 	#make Parent Agent work with a list
 
-	right_policy = train_policy(LikesRight)
-	left_policy = train_policy(LikesLeft)
+	right_policy = train_policy(LikesRight, trials = trials)
+	left_policy = train_policy(LikesLeft, trials = trials)
 
-	agent = ParentAgent()
+	agent = ParentAgent(n_samples = samples)
+	print 'running child'
 	agent.add_child(right_policy)
 	agent.add_child(left_policy)
+	print 'running parent'
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
-
-	state_histories, action_histories, reward_histories = task.run_trials(1000)
-	
-	new_agent = PolicyAgent(agent.current_policy)
+	state_histories, action_histories, reward_histories = task.run_trials(trials)
+	print 'running policy'
+	new_agent = PolicyAgent(agent.get_policy())
 	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features, display_death = True)
 	state_histories, action_histories, reward_histories = new_task.run_trials(100)
 	mean_score(reward_histories)

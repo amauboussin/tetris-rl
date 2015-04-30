@@ -160,7 +160,7 @@ class MirrorFittedQAgent:
                 #next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
                 next_sa = [(state, a) for a in valid_actions[state_to_tet_mir(state)] ]
                 #action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
-                action = next_sa[np.argmax([reg.predict(sa[0]+sa[1]) for sa in next_sa])][1]
+                action = next_sa[np.argmax([reg.predict(sa[0]+sa[1]) for sa in next_sa])][1] #[-2:]
                 return action
 
         self.current_policy = learned_policy
@@ -204,6 +204,10 @@ class FittedQAgent(object):
         return valid_actions[state_to_tet(state)]
 
     def regress(self):
+        def make_list(a):
+            if not isinstance(a, list): 
+                a = [a]
+            return a
         print 'regressing on %s tuples' % len(self.tuples)
 
 
@@ -219,13 +223,16 @@ class FittedQAgent(object):
 
             for j in range(len(data)):
                 state = new_data[j]
-                next_sa = np.array([state + a for a in self.get_actions(state)])
+                next_sa = np.array([state + make_list(a) for a in self.get_actions(state)])
                 targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
             if not state is None:
-                next_sa = [state+a for a in self.get_actions(state) ]
-                action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+
+                #next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
+                next_sa = [(state, a) for a in self.get_actions(state) ]
+                #action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+                action = next_sa[np.argmax([reg.predict(sa[0]+make_list(sa[1])) for sa in next_sa])][1]
                 return action
 
         self.current_policy = learned_policy
