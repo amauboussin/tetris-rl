@@ -35,7 +35,7 @@ class TetrisTask:
 		if hasattr(self.agent, 'get_death_penalty'):
 			self.death_penalty = self.agent.get_death_penalty()
 		else:
-			self.death_penalty = -10000
+			self.death_penalty = 0
 
 
 	def run_trials(self, trials = 100):
@@ -58,7 +58,7 @@ class TetrisTask:
 
 				field = self.game.get_field_state()
 				if not field: 
-					reward_histories[trial][-1] = self.death_penalty
+					# reward_histories[trial][-1] = self.death_penalty
 					break #game over, last thing led to death
 
 				tet = self.game.tet_state[0]
@@ -79,7 +79,7 @@ class TetrisTask:
 					mean_score(reward_histories)
 
 				if not valid_move: 
-					reward_histories[trial][-1] = self.death_penalty
+					# reward_histories[trial][-1] = self.death_penalty
 					break #game over, last thing led to death
 				
 
@@ -93,6 +93,8 @@ class TetrisTask:
 
 				
 			if self.display_death: self.game.display(last_field)
+			
+			self.agent.interact(self.get_features(last_field, tet), self.death_penalty, last_field, tet)
 		return state_histories, action_histories, reward_histories
 
 

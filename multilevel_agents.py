@@ -63,8 +63,8 @@ class LikesLeft (FittedQAgent):
     def reward_function(self, state):
         r = 0
         for i in range(self.board_width):
-            r +=  (10-i)**2 * state[i]
-        return r
+            r +=  (self.board_width-i)**2 * state[i]
+        return state[0]
 
 class LikesRight (FittedQAgent):
 
@@ -77,7 +77,7 @@ class LikesRight (FittedQAgent):
     def reward_function(self, state):
         r = 0
         for i in range(self.board_width):
-            r += (10-i)**2 * state[i]
+            r += (i)**2 * state[i]
         return r
 
 
@@ -90,4 +90,4 @@ class LikesNoHoles (FittedQAgent):
         return 0
 
     def reward_function(self, state):
-        return state[self.board_width] ** 2
+        return -(state[self.board_width] ** 2)
