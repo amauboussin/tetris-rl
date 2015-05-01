@@ -4,7 +4,7 @@ from multilevel_agents import *
 from features import get_features
 import numpy as np
 import pylab as plt
-
+import sys
 
 def random_test(board_width = 8):
 	trials = 10000
@@ -62,7 +62,19 @@ def test_parent(board_width = 8):
 	state_histories, action_histories, reward_histories = new_task.run_trials(100)
 	mean_score(reward_histories)
 
+def test_child(child_name, board_width = 8):
+	child = getattr(sys.modules['multilevel_agents'], child_name)
+	trials = 100000
+	samples = 10000
 
+	no_holes_policy = train_policy(child, trials = trials)
+	new_agent = PolicyAgent(no_holes_policy)
+	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features)
+	state_histories, action_histories, reward_histories = new_task.run_trials(1000)
+	mean_score(reward_histories)
+	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features, display_death = True)
+	state_histories, action_histories, reward_histories = new_task.run_trials(100)
+	mean_score(reward_histories)
 
 def fittedq_test(board_width = 8):
 	agent = FittedQAgent()
@@ -85,7 +97,7 @@ def multiregfittedq_test(board_width = 8):
 	mean_score(reward_histories)
 
 def mirrorfittedq_test(board_width = 8):
-	agent = MirrorMultiRegressorFittedQAgent()
+	agent = MirrorFittedQAgent()
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
 	state_histories, action_histories, reward_histories = task.run_trials(5000)
 	# mean_score(reward_histories)
@@ -101,7 +113,9 @@ def mean_score(reward_histories):
 	print max(scores)
 	print np.mean(scores)
 
-test_parent()
+# test_parent()
 # mirrorfittedq_test()
 # multiregfittedq_test()
 # random_test()
+# fittedq_test()
+test_child('LikesNoHoles')

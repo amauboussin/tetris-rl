@@ -149,7 +149,7 @@ class MirrorFittedQAgent:
 
             for j in range(len(data)):
                 state = new_data[j]
-                next_sa = np.array([state + a for a in  valid_actions[state_to_tet_mir(state)]])
+                next_sa = np.array([state + a for a in valid_actions[state_to_tet_mir(state)]])
                 targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
@@ -208,7 +208,7 @@ class FittedQAgent(object):
             if not isinstance(a, list): 
                 a = [a]
             return a
-        print 'regressing on %s tuples' % len(self.tuples)
+        print 'regressing on %s tuples' % len(self.tuples), "for", self.__class__.__name__
 
 
         data = np.array([s+a for (s, a, r, new_s) in self.tuples])

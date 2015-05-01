@@ -30,12 +30,12 @@ class TetrisTask:
 		if hasattr(self.agent, 'reward_function'):
 			self.reward_function = self.agent.reward_function
 		else:
-			self.reward_function = lambda s : self.lines_cleared
+			self.reward_function = lambda s, next_s : self.lines_cleared
 
 		if hasattr(self.agent, 'get_death_penalty'):
 			self.death_penalty = self.agent.get_death_penalty()
 		else:
-			self.death_penalty = -10000
+			self.death_penalty = 0
 
 
 	def run_trials(self, trials = 100):
@@ -84,9 +84,9 @@ class TetrisTask:
 				
 
 				self.game.hard_drop()
-				state = self.get_features(field, tet)
+				next_state = self.get_features(field, tet)
 				self.lines_cleared = self.game.clear_lines()
-				reward = self.reward_function(state)
+				reward = self.reward_function(state, next_state)
 
 
 				last_field = field if field else last_field
@@ -94,13 +94,3 @@ class TetrisTask:
 				
 			if self.display_death: self.game.display(last_field)
 		return state_histories, action_histories, reward_histories
-
-
-
-
-
-
-
-
-
-

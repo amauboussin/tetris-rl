@@ -60,11 +60,8 @@ class LikesLeft (FittedQAgent):
     def get_death_penalty(self):
         return 0
 
-    def reward_function(self, state):
-        r = 0
-        for i in range(self.board_width):
-            r +=  (10-i)**2 * state[i]
-        return r
+    def reward_function(self, state, next_state):
+        return next_state[0] - state[0]
 
 class LikesRight (FittedQAgent):
 
@@ -74,12 +71,8 @@ class LikesRight (FittedQAgent):
     def get_death_penalty(self):
         return 0
 
-    def reward_function(self, state):
-        r = 0
-        for i in range(self.board_width):
-            r += (10-i)**2 * state[i]
-        return r
-
+    def reward_function(self, state, next_state):
+        return next_state[self.board_width-1] - state[self.board_width-1]
 
 class LikesNoHoles (FittedQAgent):
 
@@ -89,5 +82,16 @@ class LikesNoHoles (FittedQAgent):
     def get_death_penalty(self):
         return 0
 
-    def reward_function(self, state):
-        return state[self.board_width] ** 2
+    def reward_function(self, state, next_state):
+        return (next_state[self.board_width] - state[self.board_width])
+
+class LikesFlat (FittedQAgent):
+
+    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
+        super(LikesFlat, self).__init__(N, None, gamma, board_width, n_samples, regressor, regressor_params)
+
+    def get_death_penalty(self):
+        return 0
+
+    def reward_function(self, state, next_state):
+        return sum(state[:self.board_width])

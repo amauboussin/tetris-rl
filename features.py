@@ -1,3 +1,5 @@
+import numpy as np
+
 # return the location of the top of the stack (the first blank row)
 def get_top(board):
   top = len(board) - 1
@@ -33,17 +35,20 @@ def get_heights(board):
         heights[j] = height - i
   return heights
   
-# return the number of holes in the board
+# return the number of squares minus the number of holes
 def get_num_holes(board):
   top = get_top(board)
   height = len(board)
   width = len(board[0])
+  heights = get_heights(board)
   count = 0
-  for i in range(top+1, height):
-    for j in range(width):
-      if i-1 in range(height) and board[i][j] == '' and board[i-1][j] != '':
-        count += 1
-  return count
+  for j in range(width):
+    for i in range(height - heights[j], height):
+      if board[i][j] == '':
+        count -= 1
+      # else:
+        # count += 1
+  return count # - np.var(heights)
 
 # encode the current piece as a binary vector
 def get_tet(tet):
@@ -67,12 +72,12 @@ def get_tet_mirror(tet):
 # difference from max height to each column
 def get_height_diffs(board):
   heights = get_heights(board)
-  m = max(heights)
-  return [m - h for h in heights]
+  m = min(heights)
+  return [h - m for h in heights]
 
 # currently disabling tet to see if separate regressors for each will be better
 def get_features(board, tet):
   if type(board) is bool:
     return
   else:
-    return get_height_diffs(board) + [get_num_holes(board)] + get_tet(tet)
+    return get_height_diffs(board) + [get_num_holes(board)] + get_tet_mirror(tet)
