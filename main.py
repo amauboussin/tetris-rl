@@ -14,11 +14,45 @@ def random_test(board_width = 8):
 	state_histories, action_histories, reward_histories = task.run_trials(trials)
 
 	mean_score(reward_histories)
-	plt.hist([sum(g) for g in reward_histories], color = 'steelblue')
-	plt.title('Random Policy Reward Histogram (100 points per line, %s games)' % trials)
-	plt.ylabel('# of games with reward')
-	plt.xlabel('Reward')
-	plt.show()
+	reward_histories_hist(reward_histories)
+
+def reward_histories_hist(reward_histories, policy = 'Random'):
+    plt.hist([sum(g) for g in reward_histories], color = 'steelblue')
+    plt.title('%s Policy Reward Histogram (100 points per line, %s games)' % (policy, len(reward_histories)))
+    plt.ylabel('# of games with reward')
+    plt.xlabel('Reward')
+
+def reward_histories_time(reward_histories, policy = 'Random', add_title = True):
+    #by trial
+    flat = [sum([max(0,r) for r in trial]) for trial in reward_histories]
+
+    cumulative = []; c = 0
+    for r in flat:
+        c += r
+        cumulative.append(c)
+    plt.plot(range(len(cumulative)), cumulative, ls = '-', label = policy)
+    if add_title:
+        plt.title('%s Policy Cumulative Reward by Game (100 points per line, %s games)' % (policy, len(reward_histories)))
+        plt.ylabel('Cumulative Reward')
+        plt.xlabel('Game #')
+
+def test_n_estimators(board_width = 8):
+    for estimators in [50, 100, 200]:
+        print 'running for ', estimators, ' estimators'
+        agent = FittedQAgent(regressor_params = {'n_estimators' : estimators})
+        task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
+        state_histories, action_histories, training_reward_histories = task.run_trials(3000)
+        new_agent = PolicyAgent(agent.current_policy)
+        new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features)
+        state_histories, action_histories, final_reward_histories = new_task.run_trials(1000)
+        mean_score(final_reward_histories)
+        
+        reward_histories_time(training_reward_histories, policy = '%s estimators' % estimators, add_title = False)
+    plt.title('Cumulative Reward by Game (varying n_estimators)')
+    plt.ylabel('Cumulative Reward')
+    plt.xlabel('Game #')
+    plt.legend()
+    plt.show()
 
 def test_multilevel(board_width = 8):
 	agent = LikesRight()
@@ -114,6 +148,7 @@ def mean_score(reward_histories):
 	print np.mean(scores)
 
 # test_parent()
+# fittedq_test()
 # mirrorfittedq_test()
 # multiregfittedq_test()
 # random_test()

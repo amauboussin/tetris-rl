@@ -262,12 +262,14 @@ class MultiRegressorFittedQAgent:
         self.last_tet = None
         self.tuples = {}
         self.counts = {}
+        self.initialized = {}
         self.n_tuples = 0
 
         for i in pieces:
             self.regs[i] = self.regressor(**self.regressor_params)
             self.tuples[i] = []
             self.counts[i] = 0
+            self.initialized[i] = False
 
     def interact(self, state, reward, field, tet):
         self.print_reward = False
@@ -289,6 +291,7 @@ class MultiRegressorFittedQAgent:
 
         #for tet in pieces:
         print 'regressing for ' + tet
+        self.initialized[tet] = True
         cur_data = self.tuples[tet]
         actions = valid_actions[tet]
         data = np.array([s+a for (s, a, r, new_s) in cur_data])
@@ -309,8 +312,11 @@ class MultiRegressorFittedQAgent:
 
         def learned_policy(state, reward, field, tet):
             if not state is None:
-                reg = self.regs[tet]
                 actions = valid_actions[tet]
+                if not self.initialized[tet]:
+                    return random.choice(valid_actions[tet])
+                reg = self.regs[tet]
+                
                 next_sa = [state+a for a in actions]
                 action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
                 return action
@@ -319,6 +325,7 @@ class MultiRegressorFittedQAgent:
         #random.shuffle(self.tuples)
         #self.tuples = self.tuples[:(self.n_samples*4/5)]
         print 'done'
+
 
 class MirrorMultiRegressorFittedQAgent:
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
