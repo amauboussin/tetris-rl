@@ -10,33 +10,19 @@ def mean_score(reward_histories):
 
 class TetrisTask:
 
-	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), feature_function = lambda x,y : x, display_death = False):
+	def __init__(self, agent, width = 8, height = 22, piece_generator = TetrisRandomGenerator(), feature_function = lambda x,y : x, include_tet = True, display_death = False, death_penalty = 0):
 
 		self.agent = agent
-
-
 		self.game =TetrisGameEngine(width = width, height = height)
 		self.piece_generator = piece_generator
 		self.display_death = display_death
-		self.lines_cleared = 0
+		self.death_penalty = death_penalty
 
-
+		self.include_tet = include_tet
 		self.width = width
 		self.height = height
 
 		self.get_features = feature_function
-
-		#check if the agent has a custom reward function that maps state to reward
-		if hasattr(self.agent, 'reward_function'):
-			self.reward_function = self.agent.reward_function
-		else:
-			self.reward_function = lambda s : self.lines_cleared
-
-		if hasattr(self.agent, 'get_death_penalty'):
-			self.death_penalty = self.agent.get_death_penalty()
-		else:
-			self.death_penalty = 0
-
 
 	def run_trials(self, trials = 100):
 
@@ -57,20 +43,14 @@ class TetrisTask:
 				self.game.spawn(self.piece_generator.next())
 
 				field = self.game.get_field_state()
-				if not field: 
-					# reward_histories[trial][-1] = self.death_penalty
-					break #game over, last thing led to death
+				if not field: break #game over
 
 				tet = self.game.tet_state[0]
 
-				state = self.get_features(field, tet)
+				state = self.get_features(field, tet, self.include_tet)
 
 				action = self.agent.interact(state, reward, field, tet)
 				new_x, new_r = action
-
-				self.game.set_rotation(new_r)
-				valid_move = self.game.set_x(new_x)
-				
 
 				state_histories[trial].append(state)
 				action_histories[trial].append(action)
@@ -78,23 +58,19 @@ class TetrisTask:
 				if self.agent.print_reward:
 					mean_score(reward_histories)
 
-				if not valid_move: 
-					# reward_histories[trial][-1] = self.death_penalty
-					break #game over, last thing led to death
+				self.game.set_rotation(new_r)
+				valid_move = self.game.set_x(new_x)
 				
+				if not valid_move: break #game over
 
 				self.game.hard_drop()
-				state = self.get_features(field, tet)
-				self.lines_cleared = self.game.clear_lines()
-				reward = self.reward_function(state)
-
+				reward = self.game.clear_lines()
 
 				last_field = field if field else last_field
 
 				
 			if self.display_death: self.game.display(last_field)
-			
-			self.agent.interact(self.get_features(last_field, tet), self.death_penalty, last_field, tet)
+			self.agent.interact(self.get_features(last_field, tet, self.include_tet), self.death_penalty, last_field, tet)
 		return state_histories, action_histories, reward_histories
 
 

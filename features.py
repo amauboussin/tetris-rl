@@ -71,8 +71,34 @@ def get_height_diffs(board):
   return [m - h for h in heights]
 
 # currently disabling tet to see if separate regressors for each will be better
-def get_features(board, tet):
+def get_features(board, tet, include_tet):
   if type(board) is bool:
     return
-  else:
+  elif include_tet:
     return get_height_diffs(board) + [get_num_holes(board)] + get_tet(tet)
+  else: 
+    get_height_diffs(board) + [get_num_holes(board)]
+
+def top_four(board, tet, include_tet):
+  if type(board) is bool:
+    return
+  elif include_tet:
+    return get_top_four(board) + [get_num_holes(board)] + get_tet(tet)
+  else: 
+    get_top_four(board) + [get_num_holes(board)]
+
+def height_diffs(board, tet, include_tet):
+  if type(board) is bool:
+    return
+  elif include_tet:
+    return get_height_diffs(board) + [get_num_holes(board)] + get_tet(tet)
+  else: 
+    get_height_diffs(board) + [get_num_holes(board)]
+
+def heights(board, tet, include_tet):
+  if type(board) is bool:
+    return
+  elif include_tet:
+    return get_heights(board) + [get_num_holes(board)] + get_tet(tet)
+  else: 
+    get_heights(board) + [get_num_holes(board)]
