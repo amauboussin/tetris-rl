@@ -60,6 +60,18 @@ def test_double(board_width = 8):
     plt.legend()
     plt.show()
 
+def multireg_plot(board_width = 8):
+	agent = MultiRegressorFittedQAgent()
+	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
+	state_histories, action_histories, reward_histories = task.run_trials(10000)
+
+	agent = FittedQAgent(regressor_params = {'n_estimators' : estimators})
+    task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
+    state_histories2, action_histories2, training_reward_histories2 = task.run_trials(3000)
+
+    reward_histories_time(training_reward_histories, policy = '%s estimators' % estimators, add_title = False)
+
+
 def test_multilevel(board_width = 8):
 	agent = LikesRight()
 	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
