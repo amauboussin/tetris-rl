@@ -9,7 +9,7 @@ pieces = ['I', 'O', 'T', 'J', 'L', 'S', 'Z']
 def state_to_tet(state):
     return pieces[list(state[-7:]).index(1)]
 
-def get_valid_actions(tet):
+def valid_actions(tet):
     bounding_box_width = 3
     board_width = 8
     leftmost = board_width - bounding_box_width + 1
