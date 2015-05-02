@@ -94,5 +94,5 @@ class TetrisTask:
 				
 			if self.display_death: self.game.display(last_field)
 			
-			self.agent.interact(self.get_features(last_field, tet), self.death_penalty, last_field, tet)
+			# self.agent.interact(self.get_features(last_field, tet), self.death_penalty, last_field, tet)
 		return state_histories, action_histories, reward_histories

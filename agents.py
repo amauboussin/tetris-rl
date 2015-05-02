@@ -153,8 +153,6 @@ class MirrorFittedQAgent:
                 targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
-            if tet not in self.pieces:
-                print "Error"
             if not state is None:
 
                 #next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
@@ -326,98 +324,90 @@ class MultiRegressorFittedQAgent:
         #self.tuples = self.tuples[:(self.n_samples*4/5)]
         print 'done'
 
+def mirror_piece(piece):
+    if piece[3] == 1:
+        return [0,0,0,0,1,0,0]
+    elif piece[4] == 1:
+        return [0,0,0,1,0,0,0]
+    elif piece[5] == 1:
+        return [0,0,0,0,0,0,1]
+    elif piece[6] == 1:
+        return [0,0,0,0,0,1,0]
+    else:
+        return piece
 
-class MirrorMultiRegressorFittedQAgent:
+# mirrored state with full representation
+def double(state):
+    return state[-9::-1] + state[-8:-7] + mirror_piece(state[-7:])
+
+class DoubleFittedQAgent(object):
     # number of iterations to regress, discount, board_width, num_samples, ?regressor?
-    def __init__(self, N = 30, gamma = .98, board_width = 8, n_samples = 1000, regressor = ExtraTreesRegressor, regressor_params = {}):
+    def __init__(self, N = 30, action_function = None, gamma = .98, board_width = 8, n_samples = 10000, regressor = ExtraTreesRegressor, regressor_params = {}):
+        self.board_width = board_width
         self.N = N
         self.gamma = gamma
         self.n_samples = n_samples
         self.regressor = regressor
         self.regressor_params = regressor_params
-        self.regs = {}
-        r = Random(board_width)
+        self.reg = self.regressor(**self.regressor_params)
+        r = Random(board_width, action_function = action_function)
         self.random = r
         self.current_policy = r.interact
         self.print_reward = False
-        self.pieces = ['I', 'O', 'T', 'J', 'S']
 
         self.last_state = None
         self.last_action = None
-        self.last_tet = None
-        self.tuples = {}
-        self.limits = {}
-        self.counts = {}
+        self.tuples = []
         self.n_tuples = 0
-
-        for i in self.pieces:
-            self.regs[i] = self.regressor(**self.regressor_params)
-            self.tuples[i] = []
-            self.limits[i] = n_samples
-            self.counts[i] = 0
 
     def interact(self, state, reward, field, tet):
         self.print_reward = False
         if self.last_state != None and state != None:
-            if self.last_tet in self.pieces:
-                last_tet = self.last_tet
-                last_state = self.last_state
-                last_action = self.last_action
-                s = state
-            else:
-                last_tet = mirrored_pieces[self.last_tet]
-                last_state = m_s(self.last_state)
-                last_action = m_a(self.last_action)
-                s = m_s(state)
-            self.tuples[last_tet].append((last_state, last_action, reward, s))
-            self.counts[last_tet] += 1
-
-            if self.counts[last_tet] == self.limits[last_tet]:
+            if not isinstance(self.last_action, list): self.last_action = [self.last_action]
+            self.tuples.append((self.last_state, self.last_action, reward, state))
+            self.tuples.append((double(self.last_state), m_a(self.last_action), reward, double(state)))
+            self.n_tuples += 2
+            if self.n_tuples == self.n_samples:
                 self.print_reward = True
-                self.limits[last_tet] *= 2
-                self.regress(last_tet)
-                self.counts[last_tet] = 0
-
+                self.regress()
+                self.n_samples *= 2
         self.last_state = state
-        self.last_tet = tet
         self.last_action = self.current_policy(state, reward, field, tet)
         return self.last_action
 
-    def regress(self, tet):
-        print 'regressing on %s tuples' % len(self.tuples[tet])
+    def get_actions(self, state):
+        return valid_actions[state_to_tet(state)]
+
+    def regress(self):
+        def make_list(a):
+            if not isinstance(a, list): 
+                a = [a]
+            return a
+        print 'regressing on %s tuples' % len(self.tuples), "for", self.__class__.__name__
 
 
-        #for tet in pieces:
-        print 'regressing for ' + tet
-        cur_data = self.tuples[tet]
-        actions = valid_actions[tet]
-        data = np.array([s+a for (s, a, r, new_s) in cur_data])
-        rewards = np.array([r for (s, a, r, new_s) in cur_data])
-        targets = np.array([r for (s, a, r, new_s) in cur_data])
+        data = np.array([s+a for (s, a, r, new_s) in self.tuples])
+        rewards = np.array([r for (s, a, r, new_s) in self.tuples])
+        targets = np.array([r for (s, a, r, new_s) in self.tuples])
 
-        new_data = ([new_s for (s, a, r, new_s) in cur_data])
+        new_data = ([new_s for (s, a, r, new_s) in self.tuples])
 
-
-        reg = self.regs[tet]
+        reg = self.reg
         for i in range(self.N):
             reg.fit(data, targets)
 
             for j in range(len(data)):
                 state = new_data[j]
-                next_sa = np.array([state + a for a in actions])
+                next_sa = np.array([state + make_list(a) for a in self.get_actions(state)])
                 targets[j] = rewards[j] + self.gamma * np.amax(reg.predict(next_sa))
 
         def learned_policy(state, reward, field, tet):
             if not state is None:
-                if not tet in self.pieces:
-                    tet = mirrored_pieces[tet]
-                    state = m_s(state)
-                reg = self.regs[tet]
-                actions = valid_actions[tet]
-                next_sa = [state+a for a in actions]
-                action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
-                if not tet in self.pieces:
-                    action = m_a(action)
+
+                #next_sa = [state+a for a in valid_actions[state_to_tet_mir(state)] ]
+                next_sa = [(state, a) for a in self.get_actions(state) ]
+                #action = next_sa[np.argmax([reg.predict(sa) for sa in next_sa])][-2:]
+                action = next_sa[np.argmax([reg.predict(sa[0]+make_list(sa[1])) for sa in next_sa])][1]
                 return action
 
         self.current_policy = learned_policy

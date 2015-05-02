@@ -1,7 +1,7 @@
 from task import TetrisTask
 from agents import *
 from multilevel_agents import *
-from features import get_features
+from features import get_features, get_mirror_features
 import numpy as np
 import pylab as plt
 import sys
@@ -22,33 +22,39 @@ def reward_histories_hist(reward_histories, policy = 'Random'):
     plt.ylabel('# of games with reward')
     plt.xlabel('Reward')
 
-def reward_histories_time(reward_histories, policy = 'Random', add_title = True):
-    #by trial
-    flat = [sum([max(0,r) for r in trial]) for trial in reward_histories]
+x = np.arange(1000)
+def reward_histories_time(results, policy = 'Random', add_title = True):
+    length = np.shape(results)[1]
+    for i in range(1,length):
+    	results[:,i] += results[:,i-1]
 
-    cumulative = []; c = 0
-    for r in flat:
-        c += r
-        cumulative.append(c)
-    plt.plot(range(len(cumulative)), cumulative, ls = '-', label = policy)
+    mean = np.mean(results[:,x], axis=0)
+    std = np.std(results[:,x], axis=0)
+
+    plt.fill_between(x, mean-2*std, mean+2*std, color='#d0d0d0')
+    plt.plot(x, mean, ls = '-', label = policy)
     if add_title:
-        plt.title('%s Policy Cumulative Reward by Game (100 points per line, %s games)' % (policy, len(reward_histories)))
+        plt.title('%s Policy Cumulative Reward by Game (10000 points per line, %s games)' % (policy, len(reward_histories)))
         plt.ylabel('Cumulative Reward')
         plt.xlabel('Game #')
 
-def test_n_estimators(board_width = 8):
-    for estimators in [50, 100, 200]:
-        print 'running for ', estimators, ' estimators'
-        agent = FittedQAgent(regressor_params = {'n_estimators' : estimators})
-        task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
-        state_histories, action_histories, training_reward_histories = task.run_trials(3000)
-        new_agent = PolicyAgent(agent.current_policy)
-        new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features)
-        state_histories, action_histories, final_reward_histories = new_task.run_trials(1000)
-        mean_score(final_reward_histories)
-        
-        reward_histories_time(training_reward_histories, policy = '%s estimators' % estimators, add_title = False)
-    plt.title('Cumulative Reward by Game (varying n_estimators)')
+N = 5
+def test_double(board_width = 8):
+    agents = [(FittedQAgent, get_features), (MirrorFittedQAgent, get_mirror_features), (DoubleFittedQAgent, get_features)]
+    for agent_init, ff in agents:
+        results = np.zeros((N, 1000))
+        for i in range(N):
+            agent = agent_init()
+            print 'running for ', agent.__class__.__name__, i
+            task = TetrisTask(agent, width = board_width, height = 22, feature_function = ff)
+            state_histories, action_histories, training_reward_histories = task.run_trials(1000)
+            new_agent = PolicyAgent(agent.current_policy)
+            new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = ff)
+            # state_histories, action_histories, final_reward_histories = new_task.run_trials(10)
+            results[i,:] = [sum([max(0,r) for r in trial]) for trial in training_reward_histories]
+            # mean_score(final_reward_histories)
+        reward_histories_time(results, policy = '%s' % agent.__class__.__name__, add_title = False)
+    plt.title('Cumulative Reward by Game')
     plt.ylabel('Cumulative Reward')
     plt.xlabel('Game #')
     plt.legend()
@@ -132,11 +138,11 @@ def multiregfittedq_test(board_width = 8):
 
 def mirrorfittedq_test(board_width = 8):
 	agent = MirrorFittedQAgent()
-	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_features)
+	task = TetrisTask(agent, width = board_width, height = 22, feature_function = get_mirror_features)
 	state_histories, action_histories, reward_histories = task.run_trials(5000)
 	# mean_score(reward_histories)
 	new_agent = PolicyAgent(agent.current_policy)
-	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_features)
+	new_task = TetrisTask(new_agent, width = board_width, height = 22, feature_function = get_mirror_features)
 	state_histories, action_histories, reward_histories = new_task.run_trials(1000)
 	mean_score(reward_histories)
 
@@ -150,7 +156,8 @@ def mean_score(reward_histories):
 # test_parent()
 # fittedq_test()
 # mirrorfittedq_test()
+test_double()
 # multiregfittedq_test()
 # random_test()
 # fittedq_test()
-test_child('LikesNoHoles')
+# test_child('LikesNoHoles')

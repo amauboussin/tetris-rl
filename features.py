@@ -80,4 +80,10 @@ def get_features(board, tet):
   if type(board) is bool:
     return
   else:
+    return get_height_diffs(board) + [get_num_holes(board)] + get_tet(tet)
+
+def get_mirror_features(board, tet):
+  if type(board) is bool:
+    return
+  else:
     return get_height_diffs(board) + [get_num_holes(board)] + get_tet_mirror(tet)
